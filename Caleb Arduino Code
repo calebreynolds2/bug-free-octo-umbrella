@@ -1,0 +1,224 @@
+/*
+  KAA109 Engineering Problem Solving and Data Analysis
+  Assignment 3: Arduino Autonomous Vehicle
+  Team Number: 17
+  Team Members: Jack Connell, Caleb Reynolds, Romy Di Ubaldo
+  
+  This programme implements the following funcitonality:
+   * 
+   *  
+   * 
+*/
+
+// Enable debugging:
+// If defined then output will be printed through Serial.print
+#define DEBUG
+
+// Tinkercad or physical system selection:
+// If TINKERCAD is defined, then the RGB LEDs will use different
+// values for enabling and setting their red, green and blue outputs.
+//#define TINKERCAD
+
+#ifdef DEBUG
+#define log(x) Serial.print(x)
+#define logln(x) Serial.println(x)
+#else
+#define log(x)
+#define logln(x)
+#endif
+
+#ifdef TINKERCAD
+#define LED_LEFT_ENABLED   LOW
+#define LED_RIGHT_ENABLED  LOW
+#define LED_LEFT_DISABLED  HIGH
+#define LED_RIGHT_DISABLED HIGH
+#define LED_PWM_VALUE(pwm) pwm
+#else
+#define LED_LEFT_ENABLED   HIGH
+#define LED_RIGHT_ENABLED  HIGH
+#define LED_LEFT_DISABLED  LOW
+#define LED_RIGHT_DISABLED LOW
+#define LED_PWM_VALUE(pwm) (255-pwm)
+#endif
+
+
+// Drive pin definitions
+#define DRIVE_RIGHT_PIN_1 9   // PWM/analogWrite(0-255)
+#define DRIVE_RIGHT_PIN_2 8
+#define DRIVE_LEFT_PIN_1  10  // PWM/analogWrite(0-255)
+#define DRIVE_LEFT_PIN_2  12
+
+// Encoder pin definitions:
+#define LEFT_ENCODER_PIN  2
+#define RIGHT_ENCODER_PIN 3
+
+// Ultrasonic sensor pin and value definitions:
+#define LEFT_TRIG_PIN     A1
+#define LEFT_ECHO_PIN     A0
+
+#define RIGHT_TRIG_PIN    A2
+#define RIGHT_ECHO_PIN    A3
+
+// RGB LED pin definitions:
+#define RED_LED_PIN           5
+#define GREEN_LED_PIN         11
+#define BLUE_LED_PIN          6
+#define LED_LEFT_EN_PIN       4
+#define LED_RIGHT_EN_PIN      7
+
+// 'On' brightness of RGB LEDs (max 255):
+#ifdef TINKERCAD
+#define BRIGHT_PWM        255
+#else
+#define BRIGHT_PWM        16
+#endif
+
+//Restrict wheel speeds (0 to 255)
+#define DRIVE_SPEED 180
+#define TURN_SPEED 150
+#define REVERSE_SPEED 150
+
+//Define the pin modes (output or input) for each component 
+void setup(){
+  pinMode(DRIVE_RIGHT_PIN_1, OUTPUT);
+  pinMode(DRIVE_RIGHT_PIN_2, OUTPUT);
+  pinMode(DRIVE_LEFT_PIN_1, OUTPUT);
+  pinMode(DRIVE_LEFT_PIN_2, OUTPUT);
+  
+  pinMode(LED_LEFT_EN_PIN, OUTPUT);
+  pinMode(LED_RIGHT_EN_PIN, OUTPUT);
+  pinMode(RED_LED_PIN, OUTPUT);
+  pinMode(GREEN_LED_PIN, OUTPUT);
+  pinMode(BLUE_LED_PIN, OUTPUT);
+
+  StopDriving();
+  DisableBothLEDs();
+}
+
+// Loop Setup
+void loop(){
+  
+}
+
+//Set the left and right drive pins to high/low 
+// to make the car drive forward
+void DriveForwards(){
+  analogWrite(DRIVE_RIGHT_PIN_1, DRIVE_SPEED);
+  digitalWrite(DRIVE_RIGHT_PIN_2, HIGH);
+  analogWrite(DRIVE_LEFT_PIN_1, DRIVE_SPEED);
+  digitalWrite(DRIVE_LEFT_PIN_2, HIGH);
+}
+
+//Set the left and right drive pins to high/low
+// to make the car drive backwards
+void DriveBackwards(){
+  analogWrite(DRIVE_RIGHT_PIN_1, REVERSE_SPEED);
+  digitalWrite(DRIVE_RIGHT_PIN_2, LOW);
+  analogWrite(DRIVE_LEFT_PIN_1, REVERSE_SPEED);
+  digitalWrite(DRIVE_LEFT_PIN_2, LOW);
+}
+
+//Set all drive pins to low to stop the car
+void StopDriving(){
+  digitalWrite(DRIVE_RIGHT_PIN_1, LOW);
+  digitalWrite(DRIVE_RIGHT_PIN_2, LOW);
+  digitalWrite(DRIVE_LEFT_PIN_1, LOW);
+  digitalWrite(DRIVE_LEFT_PIN_2, LOW);
+}
+
+//Set the right drive pins to rotate forwards
+//Set the left drive pins to rotate in reverse
+void TurnLeft(){
+  analogWrite(DRIVE_RIGHT_PIN_1, TURN_SPEED);
+  digitalWrite(DRIVE_RIGHT_PIN_2, LOW);
+  digitalWrite(DRIVE_LEFT_PIN_1, LOW);
+  digitalWrite(DRIVE_LEFT_PIN_2, HIGH);
+}
+
+//Set the right drive pins to rotate in reverse
+//Set the left dive pins to rotate forwards
+void TurnRight(){
+  digitalWrite(DRIVE_RIGHT_PIN_1, LOW);
+  digitalWrite(DRIVE_RIGHT_PIN_2, HIGH);
+  analogWrite(DRIVE_LEFT_PIN_1, TURN_SPEED);
+  digitalWrite(DRIVE_LEFT_PIN_2, LOW);
+}
+
+void EnableLeftLED(){
+  digitalWrite(LED_LEFT_EN_PIN, LED_LEFT_ENABLED);
+}
+
+void DisableLeftLED(){
+  digitalWrite(LED_LEFT_EN_PIN, LED_LEFT_DISABLED);
+}
+
+void EnableRightLED(){
+  digitalWrite(LED_RIGHT_EN_PIN, LED_RIGHT_ENABLED);
+}
+
+void DisableRightLED(){
+  digitalWrite(LED_RIGHT_EN_PIN, LED_RIGHT_DISABLED);
+}
+
+void EnableBothLEDs(){
+  EnableLeftLED();
+  EnableRightLED();
+}
+
+void DisableBothLEDs(){
+  DisableLeftLED();
+  DisableRightLED();
+}
+
+void SetLEDColour(int red, int green, int blue){
+  analogWrite(RED_LED_PIN, LED_PWM_VALUE(red));
+  analogWrite(GREEN_LED_PIN, LED_PWM_VALUE(green));
+  analogWrite(BLUE_LED_PIN, LED_PWM_VALUE(blue));
+}
+
+void DrivingLEDs(){
+  EnableBothLEDs();
+  SetLEDColour(0, BRIGHT_PWM, 0);
+}
+
+void ShowLeftTurnLED(){
+  EnableLeftLED();
+  DisableRightLED();
+  SetLEDColour(0, 0, BRIGHT_PWM);
+}
+
+void ShowRightTurnLED(){
+  EnableRightLED();
+  DisableLeftLED();
+  SetLEDColour(0, 0, BRIGHT_PWM);
+}
+
+void RedLED(){
+  EnableBothLEDs();
+  SetLEDColour(BRIGHT_PWM, 0, 0);
+}
+
+void DriveForwards(unsigned long timeMs){
+  DriveForwards();
+  delay(timeMs);
+  StopDriving();
+}
+
+void TurnLeftFor(unsigned long timeMs){
+  TurnLeft();
+  delay(timeMs);
+  StopDriving();
+}
+
+void TurnRightFor(unsigned long timeMs){
+  TurnRight();
+  delay(timeMs);
+  StopDriving();
+}
+
+void Stop(){
+  StopDriving();
+  DisableBothLEDs();
+}
+
+    
